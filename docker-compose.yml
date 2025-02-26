@@ -1,0 +1,64 @@
+services:
+  consul-server-1:
+    image: custom-consul:latest
+    container_name: consul-server-1
+    environment:
+      - CONSUL_BIND_INTERFACE=eth0
+      - CONSUL_SERVER=true
+      - CONSUL_BOOTSTRAP_EXPECT=3
+      - CONSUL_RETRY_JOIN=consul-server-2,consul-server-3
+    ports:
+      - "8500:8500"
+      - "8600:8600/udp"
+    networks:
+      consul-network:
+        ipv4_address: 172.18.0.101
+    volumes:
+      - consul-data-1:/consul/data
+  consul-server-2:
+    image: custom-consul:latest
+    container_name: consul-server-2
+    environment:
+      - CONSUL_BIND_INTERFACE=eth0
+      - CONSUL_SERVER=true
+      - CONSUL_BOOTSTRAP_EXPECT=3
+      - CONSUL_RETRY_JOIN=consul-server-1,consul-server-3
+    ports:
+      - "8501:8500"
+      - "8601:8600/udp"
+    networks:
+      consul-network:
+        ipv4_address: 172.18.0.102
+    volumes:
+      - consul-data-2:/consul/data
+  consul-server-3:
+    image: custom-consul:latest
+    container_name: consul-server-3
+    environment:
+      - CONSUL_BIND_INTERFACE=eth0
+      - CONSUL_SERVER=true
+      - CONSUL_BOOTSTRAP_EXPECT=3
+      - CONSUL_RETRY_JOIN=consul-server-1,consul-server-2
+    ports:
+      - "8502:8500"
+      - "8602:8600/udp"
+    networks:
+      consul-network:
+        ipv4_address: 172.18.0.103
+    volumes:
+      - consul-data-3:/consul/data
+volumes:
+  consul-data-1:
+    driver: local
+  consul-data-2:
+    driver: local
+  consul-data-3:
+    driver: local
+
+networks:
+  consul-network:
+    driver: bridge
+    ipam:
+     config:
+       - subnet: 172.18.0.0/16
+         gateway: 172.18.0.1
